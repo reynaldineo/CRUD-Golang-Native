@@ -3,6 +3,7 @@ package models
 import (
 	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/reynaldineo/CRUD-Golang-Native/config"
 	"github.com/reynaldineo/CRUD-Golang-Native/entities"
@@ -22,6 +23,44 @@ func NewPasienModel() *PasienModel{
 	return &PasienModel{
 		conn: conn,
 	}
+}
+
+func (p *PasienModel) FindAll() ([]entities.Pasien, error){
+
+	rows, err := p.conn.Query("SELECT * FROM pasien")
+	if err != nil {
+		return []entities.Pasien{}, err
+	}
+	defer rows.Close()
+
+	var dataPasien []entities.Pasien
+	for rows.Next() {
+		var pasien entities.Pasien
+		rows.Scan(
+			&pasien.Id, 
+			&pasien.NamaLengkap, 
+			&pasien.NIK, 
+			&pasien.JenisKelamin, 
+			&pasien.TempatLahir, 
+			&pasien.TanggalLahir, 
+			&pasien.Alamat, 
+			&pasien.NoHp)
+
+		if pasien.JenisKelamin == "1" {
+			pasien.JenisKelamin = "Laki-laki"
+		} else {
+			pasien.JenisKelamin = "Perempuan"
+		}
+
+		// 2006-01-02 => yyyy-mm-dd in Golang
+		tgl_lahir, _ := time.Parse("2006-01-02", pasien.TanggalLahir)
+		// 02 Januari 2006 => dd mmmm yyyy in Golang
+		pasien.TanggalLahir = tgl_lahir.Format("02-01-2006")
+
+		dataPasien = append(dataPasien, pasien)
+	}		
+
+	return dataPasien, nil
 }
 
 func (p *PasienModel) Create(passien entities.Pasien) bool{
