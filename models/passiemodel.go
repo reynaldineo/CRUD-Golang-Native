@@ -99,3 +99,14 @@ func (p *PasienModel) Update(pasien entities.Pasien) error {
 
 	return nil
 }
+
+func (p *PasienModel) Delete(id int64) error {
+
+	_, err := p.conn.Exec("DELETE FROM pasien WHERE id = ?", id)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
